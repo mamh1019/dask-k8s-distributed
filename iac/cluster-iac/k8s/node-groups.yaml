@@ -1,0 +1,39 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: workload-cluster
+  region: ap-northeast-2
+  
+managedNodeGroups:
+  - name: app-nodes
+    instanceTypes: 
+      - t3.large
+    desiredCapacity: 2
+    maxSize: 3
+    minSize: 1
+    volumeSize: 20
+    spot: true
+    labels:
+      nodegroup-role: application
+    tags:
+      createdBy: dask-k8s-demo
+      createdByProject: example-cluster
+      
+  - name: dask-nodes
+    instanceTypes: 
+      - t3.xlarge
+    desiredCapacity: 2
+    maxSize: 20
+    minSize: 2
+    volumeSize: 30
+    spot: true
+    # privateNetworking: true
+    # ssh:
+    #   publicKeyName: "eks-pod-ssh"
+    #   allow: true
+    labels:
+      nodegroup-role: dask
+    tags:
+      createdBy: dask-k8s-demo
+      createdByProject: example-cluster

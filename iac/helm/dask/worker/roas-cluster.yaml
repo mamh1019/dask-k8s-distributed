@@ -1,0 +1,89 @@
+apiVersion: kubernetes.dask.org/v1
+kind: DaskCluster
+metadata:
+  name: roas-cluster
+spec:
+  idleTimeout: 0
+  worker:
+    replicas: 1
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/dask/dask:2025.4.1
+          args:
+            - dask-worker
+            - --name
+            - $(DASK_WORKER_NAME)
+            - --dashboard
+            - --dashboard-address
+            - "8788"
+          env: 
+            - name: EXTRA_PIP_PACKAGES
+              value: "pymysql opensearch-py requests"
+          resources: 
+            requests:
+              memory: "2Gi"
+              cpu: "1"
+            limits:
+              memory: "3Gi"
+              cpu: "2"
+          ports:
+            - name: http-dashboard
+              containerPort: 8788
+              protocol: TCP
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /var/analysis
+      nodeSelector:
+          nodegroup-role: dask-worker
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim
+  scheduler:
+    spec:
+      containers:
+        - name: scheduler
+          image: ghcr.io/dask/dask:2025.4.1
+          args:
+            - dask-scheduler
+            - --host
+            - 0.0.0.0
+          env: null
+          resources: null
+          ports:
+            - name: tcp-comm
+              containerPort: 8786
+              protocol: TCP
+            - name: http-dashboard
+              containerPort: 8787
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              port: http-dashboard
+              path: /health
+            initialDelaySeconds: 0
+            periodSeconds: 1
+            timeoutSeconds: 300
+          livenessProbe:
+            httpGet:
+              port: http-dashboard
+              path: /health
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      nodeSelector:
+          nodegroup-role: dask-worker
+    service:
+      type: ClusterIP
+      selector:
+        dask.org/cluster-name: roas-cluster
+        dask.org/component: scheduler
+      ports:
+        - name: tcp-comm
+          protocol: TCP
+          port: 8786
+          targetPort: tcp-comm
+        - name: http-dashboard
+          protocol: TCP
+          port: 8787
+          targetPort: http-dashboard

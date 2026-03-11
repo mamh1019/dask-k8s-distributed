@@ -1,0 +1,65 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: workload-cluster
+  region: ap-northeast-2
+  version: "1.32"
+  tags:
+    createdBy: dask-k8s-demo
+    createdByProject: example-cluster
+
+vpc:
+  id: vpc-0da6d1486e1d44axx
+  subnets:
+    public:
+      subnet-a:
+        id: subnet-03a0671ba85fe1axx
+      subnet-b:
+        id: subnet-0de1ef25fdc2cd6xx
+      subnet-c:
+        id: subnet-0608d53d70fe4a73xx
+      subnet-d:
+        id: subnet-0edd2864a0e87ecxx
+    # private:
+    #   AliceNetwork-PrivateSubnet01:
+    #     id: subnet-02d891086ae6141xx
+    #   AliceNetwork-PrivateSubnet02:
+    #     id: subnet-066312f7836ee11xx
+  clusterEndpoints:
+    publicAccess: true
+    privateAccess: true
+
+managedNodeGroups:
+  - name: dask-worker
+    instanceTypes:
+      - r7i.large
+      - r6i.large
+      - c7i.large
+      - c6i.large
+      - m7i.large
+      - m6i.large
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 20
+    volumeSize: 30
+    spot: true
+    labels:
+      nodegroup-role: dask-worker
+    tags:
+      createdBy: dask-k8s-demo
+      createdByProject: example-cluster
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: aws-load-balancer-controller
+      namespace: kube-system
+    wellKnownPolicies:
+      awsLoadBalancerController: true
+
+addons:
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies: 
+      ebsCSIController: true

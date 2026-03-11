@@ -1,0 +1,43 @@
+prometheus:
+  prometheusSpec:
+    scrapeInterval: "60s"
+    retention: "3d"
+    walCompression: true
+    nodeSelector:
+      nodegroup-role: application
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: efs-prometheus-sc 
+          accessModes: ["ReadWriteMany"]
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  alertmanagerSpec:
+    nodeSelector:
+      nodegroup-role: application
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: efs-prometheus-sc 
+          accessModes: ["ReadWriteMany"]
+          resources:
+            requests:
+              storage: 10Gi
+
+grafana:
+  nodeSelector:
+    nodegroup-role: application
+  initChownData:
+    enabled: false
+  persistence:
+    enabled: true
+    storageClassName: efs-prometheus-sc 
+    accessModes: ["ReadWriteMany"]
+    size: 10Gi
+  service:
+      type: LoadBalancer
+      port: 80
+      portName: http-web

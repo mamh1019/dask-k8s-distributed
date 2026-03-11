@@ -1,0 +1,26 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: workload-cluster
+  region: ap-northeast-2
+
+managedNodeGroups:
+  - name: dask-worker
+    instanceTypes:
+      - r7i.large
+      - r6i.large
+      - c7i.large
+      - c6i.large
+      - m7i.large
+      - m6i.large
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 20
+    volumeSize: 30
+    spot: true
+    labels:
+      nodegroup-role: dask-worker
+    tags:
+      createdBy: dask-k8s-demo
+      createdByProject: example-cluster

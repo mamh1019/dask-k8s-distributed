@@ -1,0 +1,11 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-prometheus-sc
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-YOUR_EFS_FILESYSTEM_ID
+  directoryPerms: "700"
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
